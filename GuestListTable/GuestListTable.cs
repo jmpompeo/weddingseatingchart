@@ -7,12 +7,21 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Net.Http;
 
 namespace GuestListTable
 {
-    public static class Function1
+    public class GuestListTable
     {
-        [FunctionName("Function1")]
+        private readonly ILogger _log;
+        private readonly HttpClient client;
+        public GuestListTable(ILogger log, IHttpClientFactory httpClientFactory)
+        {
+            _log = log;
+            client = httpClientFactory.CreateClient();
+        }
+
+        [FunctionName("GuestListTable")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
@@ -23,7 +32,7 @@ namespace GuestListTable
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             dynamic data = JsonConvert.DeserializeObject(requestBody);
-            name = name ?? data?.name;
+            name ??= data?.name;
 
             string responseMessage = string.IsNullOrEmpty(name)
                 ? "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
