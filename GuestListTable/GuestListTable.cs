@@ -8,16 +8,15 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Net.Http;
+using GuestListTable.Requests;
 
 namespace GuestListTable
 {
     public class GuestListTable
     {
-        private readonly ILogger _log;
         private readonly HttpClient client;
-        public GuestListTable(ILogger log, IHttpClientFactory httpClientFactory)
+        public GuestListTable(IHttpClientFactory httpClientFactory)
         {
-            _log = log;
             client = httpClientFactory.CreateClient();
         }
 
@@ -26,19 +25,30 @@ namespace GuestListTable
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-            log.LogInformation("C# HTTP trigger function processed a request.");
 
-            string name = req.Query["name"];
+            log.LogInformation("Deserializing Request");
 
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            dynamic data = JsonConvert.DeserializeObject(requestBody);
-            name ??= data?.name;
+            var reqBody = await new StreamReader(req.Body).ReadToEndAsync();
+            if (string.IsNullOrWhiteSpace(reqBody))
+            {
+                log.LogError("Unable to properly read the stream for the incoming request body");
+                throw new NullReferenceException();
+            }
+            var tableRequestReq = JsonConvert.DeserializeObject<TableRequestReq>(reqBody);
 
-            string responseMessage = string.IsNullOrEmpty(name)
-                ? "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
-                : $"Hello, {name}. This HTTP triggered function executed successfully.";
+            if (string.IsNullOrWhiteSpace(tableRequestReq.FirstName))
+            { 
+                log.LogError("First Name cannot be null.");
+                throw new NullReferenceException();
+            }
+            if (string.IsNullOrWhiteSpace(tableRequestReq.LastName))
+            { 
+                log.LogError("Last Name cannot be null.");
+                throw new NullReferenceException();
+            }
 
-            return new OkObjectResult(responseMessage);
+
+
         }
     }
 }
