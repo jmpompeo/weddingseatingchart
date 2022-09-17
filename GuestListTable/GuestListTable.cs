@@ -46,9 +46,6 @@ namespace GuestListTable
                 log.LogError("Last Name cannot be null.");
                 throw new NullReferenceException();
             }
-
-
-
         }
     }
 }
