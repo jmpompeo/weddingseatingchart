@@ -9,15 +9,18 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Net.Http;
 using GuestListTable.Requests;
+using GuestListTable.Interfaces;
 
 namespace GuestListTable
 {
     public class GuestListTable
     {
-        private readonly HttpClient client;
-        public GuestListTable(IHttpClientFactory httpClientFactory)
+        private static IHttpClientFactory _httpClientFactory;
+        public static IDatabaseService _databaseService;
+        public GuestListTable(IHttpClientFactory factory, IDatabaseService databaseService)
         {
-            client = httpClientFactory.CreateClient();
+            _httpClientFactory = factory;
+            _databaseService = databaseService;
         }
 
         [FunctionName("GuestListTable")]
@@ -46,6 +49,9 @@ namespace GuestListTable
                 log.LogError("Last Name cannot be null.");
                 throw new NullReferenceException();
             }
+
+            _httpClientFactory.CreateClient();
+            
         }
     }
 }
